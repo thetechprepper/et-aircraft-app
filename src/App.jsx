@@ -150,11 +150,12 @@ function App() {
                 >
                   <TableHeader>
                     <Column key="flight" allowsSorting>
-                      Flight
+                      Flight #
                     </Column>
-                    <Column key="lat" allowsSorting>
-                      Lat/Lon
+                    <Column key="hex">
+                      ICAO24
                     </Column>
+		  {/* <Column key="lat" allowsSorting> Lat/Lon </Column> */ }
                     <Column key="speed" allowsSorting>
                       Speed
                     </Column>
@@ -165,8 +166,9 @@ function App() {
                   <TableBody>
                     {sortedAircraft.map((ac) => (
                       <Row key={ac.hex}>
-                        <Cell>{ac.flight || ac.hex.toUpperCase()}</Cell>
-                        <Cell>{ac.lat.toFixed(3)},{ac.lon.toFixed(3)}</Cell>
+                        <Cell>{ac.flight || 'NA'}</Cell>
+                        <Cell>{ac.hex.toUpperCase()}</Cell>
+			    {/* <Cell>{ac.lat.toFixed(3)},{ac.lon.toFixed(3)}</Cell> */}
                         <Cell>{ac.speed}</Cell>
                         <Cell>{ac.altitude.toLocaleString()}</Cell>
                       </Row>
