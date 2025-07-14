@@ -35,6 +35,8 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [aircraftList, setAircraftList] = useState([]);
   const [selectedHex, setSelectedHex] = useState(null);
+  const [selectedAircraftData, setSelectedAircraftDate] = useState(null);
+
   const [sortDescriptor, setSortDescriptor] = useState({
     column: 'flight',
     direction: 'ascending',
@@ -44,6 +46,12 @@ function App() {
   //  osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   //  opentopo: 'https://tile.opentopomap.org/{z}/{x}/{y}.png'
   //}
+
+  const handleAircraftClick = async (icao24) => {
+    const response = await fetch(`http://localhost:1981/api/aircraft?icao24=${icao24}`);
+    const data = await response.json();
+    setSelectedAircraft(data[0] || null); // Expecting a list with 1 object
+  };
 
   // Fetch aircraft data every 5 seconds
   useEffect(() => {
@@ -141,6 +149,7 @@ function App() {
                     const [key] = Array.from(keys)
                     const curAircraft = aircraftList.find(ac => ac.hex === key);
                     setSelectedHex(key)
+		    handleAircraftClick(key)
                     setCenter([curAircraft.lat,curAircraft.lon])
                   }}
                   sortDescriptor={sortDescriptor}
