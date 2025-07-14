@@ -1,4 +1,8 @@
-// electron.js
+// Author  : Gaston Gonzalez
+// Date    : 14 July 2025
+// Updated : 14 July 2025
+// Purpose : Main entry point for the Electron application
+
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
@@ -10,6 +14,12 @@ function createWindow() {
     },
   });
 
+  // Set zoom level for app one level higher than 100% since we targeting
+  // touch devices in EmComm Tools Community.
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.setZoomFactor(1.2);
+  });
+
   // production
   win.loadFile(path.join(__dirname, 'dist', 'index.html'));
 
@@ -19,6 +29,7 @@ function createWindow() {
   win.maximize();
   win.show();
 }
+
 
 
 app.whenReady().then(() => {
