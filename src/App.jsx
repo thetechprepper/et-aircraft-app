@@ -18,6 +18,8 @@ import {
   Cell,
 } from '@adobe/react-spectrum'
 import Crosshairs from '@spectrum-icons/workflow/Crosshairs'
+import Filter from '@spectrum-icons/workflow/Filter'
+import InfoOutline from '@spectrum-icons/workflow/InfoOutline'
 import Minimize from '@spectrum-icons/workflow/Minimize'
 import ShowMenu from '@spectrum-icons/workflow/ShowMenu'
 import { Map, Marker, ZoomControl } from 'pigeon-maps'
@@ -131,15 +133,23 @@ function App() {
           {sidebarOpen && (
             <View width="40%" backgroundColor="gray-100" padding="size-200">
               <Flex direction="column" gap="size-200">
-                <ActionButton onPress={() => setSidebarOpen(false)} aria-label="Hide Panel">
-                  <Minimize/><Text>Hide</Text>
-                </ActionButton>
+		<Flex direction="row" gap="size-200">
+                  <ActionButton onPress={() => setSidebarOpen(false)} aria-label="Hide Panel">
+                    <Minimize/><Text>Hide</Text>
+                  </ActionButton>
 
-                <ActionButton aria-label="Recenter">
-                  <Crosshairs/><Text>My Position</Text>
-                </ActionButton>
+                  <ActionButton aria-label="Recenter">
+                    <Crosshairs/><Text>My Position</Text>
+                  </ActionButton>
 
-                <Heading>Aircraft</Heading>
+                  <ActionButton aria-label="Filter">
+                    <Filter/><Text>Filter</Text>
+                  </ActionButton>
+
+                  <ActionButton aria-label="Info">
+                    <InfoOutline/><Text>Info</Text>
+                  </ActionButton>
+		</Flex>
 
                 <TableView
                   aria-label="Aircraft Table"
@@ -191,9 +201,24 @@ function App() {
           {/* Toggle Button if Sidebar is hidden */}
           {!sidebarOpen && (
             <View backgroundColor="gray-100" padding="size-100">
-              <ActionButton onPress={() => setSidebarOpen(true)} aria-label="Show Panel">
-                <ShowMenu />
-              </ActionButton>
+
+              <Flex direction="column" gap="size-200">
+                <ActionButton onPress={() => setSidebarOpen(true)} aria-label="Show Panel">
+                  <ShowMenu />
+                </ActionButton>
+
+                <ActionButton aria-label="Recenter">
+                  <Crosshairs/>
+                </ActionButton>
+
+                <ActionButton aria-label="Filter">
+                  <Filter/>
+                </ActionButton>
+
+                <ActionButton aria-label="Info">
+                  <InfoOutline/>
+                </ActionButton>
+              </Flex>
             </View>
           )}
 
