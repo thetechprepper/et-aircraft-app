@@ -3,6 +3,10 @@ import {
   ActionButton,
   Button,
   defaultTheme,
+  Content,
+  Dialog,
+  DialogTrigger,
+  Divider,
   Flex,
   Heading,
   Item,
@@ -37,7 +41,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [aircraftList, setAircraftList] = useState([]);
   const [selectedHex, setSelectedHex] = useState(null);
-  const [selectedAircraftData, setSelectedAircraftDate] = useState(null);
+  const [selectedAircraftData, setSelectedAircraftData] = useState(null);
 
   const [sortDescriptor, setSortDescriptor] = useState({
     column: 'flight',
@@ -52,7 +56,7 @@ function App() {
   const handleAircraftClick = async (icao24) => {
     const response = await fetch(`http://localhost:1981/api/aircraft?icao24=${icao24}`);
     const data = await response.json();
-    setSelectedAircraft(data[0] || null); // Expecting a list with 1 object
+    setSelectedAircraftData(data[0] || null);
   };
 
   // Fetch aircraft data every 5 seconds
@@ -146,9 +150,31 @@ function App() {
                     <Filter/><Text>Filter</Text>
                   </ActionButton>
 
-                  <ActionButton aria-label="Info">
-                    <InfoOutline/><Text>Info</Text>
-                  </ActionButton>
+                  <DialogTrigger type="tray">
+                    <ActionButton aria-label="Info">
+                      <InfoOutline/><Text>Info</Text>
+                    </ActionButton>
+                    <Dialog>
+                      <Heading>{selectedAircraftData?.make || 'Unknown Make'} {selectedAircraftData?.model || 'Unknown Model'}</Heading>
+                      <Divider />
+                      <Content>
+		        <Flex direction="column" gap="size-100">
+                          <Text>
+                            Tail #: {selectedAircraftData?.tail_number || 'Uknown'}  
+                          </Text>
+                          <Text>
+                            Owner: {selectedAircraftData?.owner_name || 'Unknown'}  
+                          </Text>
+                          <Text>
+                            City: {selectedAircraftData?.city|| 'Unknown'}  
+                          </Text>
+                          <Text>
+                            State: {selectedAircraftData?.state|| 'Unknown'}  
+                          </Text>
+		        </Flex>
+                      </Content>
+                    </Dialog>
+                  </DialogTrigger>
 		</Flex>
 
                 <TableView
