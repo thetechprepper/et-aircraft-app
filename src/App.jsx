@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActionButton,
   Button,
@@ -20,20 +20,23 @@ import {
   TableBody,
   Row,
   Cell,
-} from '@adobe/react-spectrum'
-import Crosshairs from '@spectrum-icons/workflow/Crosshairs'
-import Filter from '@spectrum-icons/workflow/Filter'
-import InfoOutline from '@spectrum-icons/workflow/InfoOutline'
-import Minimize from '@spectrum-icons/workflow/Minimize'
-import ShowMenu from '@spectrum-icons/workflow/ShowMenu'
-import { Map, Marker, ZoomControl } from 'pigeon-maps'
-import Airplane from './Airplane.jsx'
+} from '@adobe/react-spectrum';
+import Crosshairs from '@spectrum-icons/workflow/Crosshairs';
+import Filter from '@spectrum-icons/workflow/Filter';
+import InfoOutline from '@spectrum-icons/workflow/InfoOutline';
+import Minimize from '@spectrum-icons/workflow/Minimize';
+import ShowMenu from '@spectrum-icons/workflow/ShowMenu';
+import { Map, Marker, ZoomControl } from 'pigeon-maps';
+import Airplane from './Airplane.jsx';
+import './App.css';
 
 function App() {
 
+  const API_HOST = import.meta.env.VITE_API_HOST || 'http://localhost:1981';
   const DATA_HOST = import.meta.env.VITE_DATA_HOST || 'http://localhost:1090';
   const MAP_HOST = import.meta.env.VITE_MAP_HOST || 'http://localhost:8000';
 
+  const [myPosition, setMyPosition] = useState([33.0, -112.0]);
   const [center, setCenter] = useState([33.0, -112.0]);
   const [zoom, setZoom] = useState(10);
 
@@ -46,15 +49,33 @@ function App() {
   const [sortDescriptor, setSortDescriptor] = useState({
     column: 'flight',
     direction: 'ascending',
-  })
+  });
 
   //const mapTiles = {
   //  osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   //  opentopo: 'https://tile.opentopomap.org/{z}/{x}/{y}.png'
   //}
 
+  useEffect(() => {
+    const fetchDefaultGrid = async () => {
+      try {
+        const response = await fetch(`${API_HOST}/api/geo/position`);
+        if (!response.ok) throw new Error('Failed to fetch default location from et-api');
+        const data = await response.json();
+        if (data.lat && data.lon) {
+          setMyPosition([data.lat, data.lon]);
+          setCenter([data.lat, data.lon]);
+        }
+      } catch (err) {
+        console.warn('Could not load default location from GPS or user config:', err);
+      }
+    };
+
+    fetchDefaultGrid();
+  }, []);
+
   const handleAircraftClick = async (icao24) => {
-    const response = await fetch(`http://localhost:1981/api/aircraft?icao24=${icao24}`);
+    const response = await fetch(`${API_HOST}/api/aircraft?icao24=${icao24}`);
     const data = await response.json();
     setSelectedAircraftData(data[0] || null);
   };
@@ -72,7 +93,7 @@ function App() {
     }
 
     fetchAircraft(); // initial fetch
-    const intervalId = setInterval(fetchAircraft, 5000); // repeat every 5 sec
+    const intervalId = setInterval(fetchAircraft, 5000);
 
     return () => clearInterval(intervalId); // clean up on unmount
   }, []);
@@ -142,15 +163,35 @@ function App() {
                     <Minimize/><Text>Hide</Text>
                   </ActionButton>
 
-                  <ActionButton aria-label="Recenter">
+		  <ActionButton
+                    aria-label="Recenter"
+                    onPress={async () => {
+                      try {
+                        const response = await fetch(`${API_HOST}/api/geo/position`);
+
+                        if (!response.ok) throw new Error('Failed to fetch position');
+
+                        const data = await response.json();
+
+                        if (data.lat && data.lon) {
+                          setMyPosition([data.lat, data.lon]);
+                          setCenter([data.lat, data.lon]);
+                        }
+                      } catch (err) {
+                        console.warn('Could not fetch current position:', err);
+                      }
+                    }}
+                  >
                     <Crosshairs/><Text>My Position</Text>
                   </ActionButton>
 
+		  {/*
                   <ActionButton aria-label="Filter">
                     <Filter/><Text>Filter</Text>
                   </ActionButton>
+		  */}
 
-                  <DialogTrigger type="tray">
+		  {selectedAircraftData && (<DialogTrigger type="tray">
                     <ActionButton aria-label="Info">
                       <InfoOutline/><Text>Info</Text>
                     </ActionButton>
@@ -166,15 +207,16 @@ function App() {
                             Owner: {selectedAircraftData?.owner_name || 'Unknown'}  
                           </Text>
                           <Text>
-                            City: {selectedAircraftData?.city|| 'Unknown'}  
+                            City: {selectedAircraftData?.state|| 'Unknown'}  
                           </Text>
                           <Text>
-                            State: {selectedAircraftData?.state|| 'Unknown'}  
+                            State: {selectedAircraftData?.city|| 'Unknown'}  
                           </Text>
 		        </Flex>
                       </Content>
                     </Dialog>
                   </DialogTrigger>
+	          )}
 		</Flex>
 
                 <TableView
@@ -232,18 +274,6 @@ function App() {
                 <ActionButton onPress={() => setSidebarOpen(true)} aria-label="Show Panel">
                   <ShowMenu />
                 </ActionButton>
-
-                <ActionButton aria-label="Recenter">
-                  <Crosshairs/>
-                </ActionButton>
-
-                <ActionButton aria-label="Filter">
-                  <Filter/>
-                </ActionButton>
-
-                <ActionButton aria-label="Info">
-                  <InfoOutline/>
-                </ActionButton>
               </Flex>
             </View>
           )}
@@ -265,7 +295,9 @@ function App() {
             >
 
               <ZoomControl />
-              <Marker anchor={[33.0, -112.0]} />
+              <Marker anchor={myPosition}>
+	        <div className="my-position-marker" />
+	      </Marker>
 
               {aircraftList.map((ac) => (
                 <Marker key={ac.hex} anchor={[ac.lat, ac.lon]}>
@@ -279,6 +311,7 @@ function App() {
                   />
                 </Marker>
               ))}
+
             </Map>
           </View>
         </Flex>
