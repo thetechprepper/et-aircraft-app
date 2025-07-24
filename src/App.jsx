@@ -207,10 +207,10 @@ function App() {
                             Owner: {selectedAircraftData?.owner_name || 'Unknown'}  
                           </Text>
                           <Text>
-                            City: {selectedAircraftData?.state|| 'Unknown'}  
+                            City: {selectedAircraftData?.city || 'Unknown'}  
                           </Text>
                           <Text>
-                            State: {selectedAircraftData?.city|| 'Unknown'}  
+                            State: {selectedAircraftData?.state|| 'Unknown'}  
                           </Text>
 		        </Flex>
                       </Content>
