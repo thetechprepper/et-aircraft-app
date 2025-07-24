@@ -201,8 +201,10 @@ function App() {
                       <Content>
                         <Flex direction="column" gap="size-100">
                           {[
-                            ['Tail #', selectedAircraftData?.tail_number || 'Unknown'],
+                            ['Type', selectedAircraftData?.registrant_type || 'Unknown'],
                             ['Owner', selectedAircraftData?.owner_name || 'Unknown'],
+                            ['Tail #', selectedAircraftData?.tail_number || 'Unknown'],
+                            ['Year', selectedAircraftData?.year|| 'Unknown'],
                             ['City', selectedAircraftData?.city || 'Unknown'],
                             ['State', selectedAircraftData?.state || 'Unknown']
                           ].map(([label, value]) => (
