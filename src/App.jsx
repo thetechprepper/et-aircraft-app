@@ -199,20 +199,23 @@ function App() {
                       <Heading>{selectedAircraftData?.make || 'Unknown Make'} {selectedAircraftData?.model || 'Unknown Model'}</Heading>
                       <Divider />
                       <Content>
-		        <Flex direction="column" gap="size-100">
-                          <Text>
-                            Tail #: {selectedAircraftData?.tail_number || 'Uknown'}  
-                          </Text>
-                          <Text>
-                            Owner: {selectedAircraftData?.owner_name || 'Unknown'}  
-                          </Text>
-                          <Text>
-                            City: {selectedAircraftData?.city || 'Unknown'}  
-                          </Text>
-                          <Text>
-                            State: {selectedAircraftData?.state|| 'Unknown'}  
-                          </Text>
-		        </Flex>
+                        <Flex direction="column" gap="size-100">
+                          {[
+                            ['Tail #', selectedAircraftData?.tail_number || 'Unknown'],
+                            ['Owner', selectedAircraftData?.owner_name || 'Unknown'],
+                            ['City', selectedAircraftData?.city || 'Unknown'],
+                            ['State', selectedAircraftData?.state || 'Unknown']
+                          ].map(([label, value]) => (
+                            <Flex key={label} direction="row" gap="size-100" alignItems="start">
+                              <Text width="size-800" UNSAFE_style={{ fontWeight: 'bold' }}>
+                                {label}:
+                              </Text>
+                              <Text flex="1">
+                                {value}
+                              </Text>
+                            </Flex>
+                          ))}
+                        </Flex>
                       </Content>
                     </Dialog>
                   </DialogTrigger>
