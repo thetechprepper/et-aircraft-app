@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActionButton,
   Button,
+  ButtonGroup,
   defaultTheme,
   Content,
   Dialog,
@@ -10,6 +11,7 @@ import {
   Flex,
   Heading,
   Item,
+  ListBox,
   Picker,
   Provider,
   Text,
@@ -46,7 +48,9 @@ function App() {
   const [selectedHex, setSelectedHex] = useState(null);
   const [selectedAircraftData, setSelectedAircraftData] = useState(null);
 
-  const [filterValue, setFilterValue] = useState('All')
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState(new Set());
+  const [tempSelection, setTempSelection] = useState(new Set());
 
   const [sortDescriptor, setSortDescriptor] = useState({
     column: 'flight',
@@ -125,9 +129,9 @@ function App() {
   }, []);
 
   const filteredAircraft = useMemo(() => {
-    if (filterValue === 'All') return aircraftList;
-    return aircraftList.filter(ac => ac.registrant_type === filterValue);
-  }, [aircraftList, filterValue]);
+    if (selectedTypes.size === 0) return aircraftList;
+    return aircraftList.filter(ac => selectedTypes.has(ac.registrant_type));
+  }, [aircraftList, selectedTypes]);
 
   const sortedAircraft = useMemo(() => {
     return [...filteredAircraft].sort((a, b) => {
@@ -230,20 +234,43 @@ function App() {
                     <Crosshairs/><Text>My Position</Text>
                   </ActionButton>
 
-		  {/*
-                  <ActionButton aria-label="Filter">
-                    <Filter/><Text>Filter</Text>
-                  </ActionButton>
-		  */}
-		  <Picker
-                    selectedKey={filterValue}
-                    onSelectionChange={setFilterValue}
-                  >
-		    {registrantTypes.map(type => (
-                      <Item key={type}>{type}</Item>
-                    ))}
-                  </Picker>
+		  <DialogTrigger type="tray">
+                    <ActionButton aria-label="Filter">
+                      <Filter/><Text>Filter</Text>
+                    </ActionButton>
 
+                    {(close) => (
+                      <Dialog>
+                        <Heading>Filter by Registrant Type</Heading>
+                        <Divider />
+                        <Content>
+                          <ListBox
+                            selectionMode="multiple"
+                            selectedKeys={tempSelection}
+                            onSelectionChange={setTempSelection}
+                          >
+                            {registrantTypes.map(type => (
+                              <Item key={type}>{type}</Item>
+                            ))}
+                          </ListBox>
+                        </Content>
+                        <ButtonGroup>
+                          <Button variant="secondary" onPress={() => {
+                            setTempSelection(new Set(selectedTypes)); // Reset to current selection
+                            close();
+                          }}>
+                            Cancel
+                          </Button>
+                          <Button variant="accent" onPress={() => {
+                            setSelectedTypes(new Set(tempSelection));
+                            close();
+                          }}>
+                            Apply
+                          </Button>
+                        </ButtonGroup>
+                      </Dialog>
+                    )}
+                  </DialogTrigger>
 
 		  {selectedAircraftData && (<DialogTrigger type="tray">
                     <ActionButton aria-label="Info">
