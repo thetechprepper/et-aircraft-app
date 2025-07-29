@@ -46,6 +46,8 @@ function App() {
   const [selectedHex, setSelectedHex] = useState(null);
   const [selectedAircraftData, setSelectedAircraftData] = useState(null);
 
+  const [filterValue, setFilterValue] = useState('All')
+
   const [sortDescriptor, setSortDescriptor] = useState({
     column: 'flight',
     direction: 'ascending',
@@ -80,40 +82,83 @@ function App() {
     setSelectedAircraftData(data[0] || null);
   };
 
-  // Fetch aircraft data every 5 seconds
+  // Fetch aircraft data every 10 seconds
   useEffect(() => {
     const fetchAircraft = async () => {
       try {
-        const response = await fetch(`${DATA_HOST}/data.json`)
-        const data = await response.json()
-        setAircraftList(data)
+        // Step 1: Fetch ADS-B data from dump1090 endpoint
+        const response = await fetch(`${DATA_HOST}/data.json`);
+        const primaryData = await response.json();
+
+        // Step 2: Extract the hex codes
+        const hexCodes = primaryData.map(ac => ac.hex).join(',');
+
+        // Step 3: Fetch additional aircraft data from the offline FAA endpoint 
+        const secondaryResponse = await fetch(`${API_HOST}/api/aircraft?icao24=${hexCodes}`);
+        const secondaryData = await secondaryResponse.json();
+
+        // Step 4: Index FAA data by the hex code (ICAO24) for quick lookup
+        const secondaryMap = {};
+        for (const ac of secondaryData) {
+	  if (ac.icao24) {
+            secondaryMap[ac.icao24.toLowerCase()] = ac;
+          }
+        }
+
+        // Step 5: Merge ADS-B data with the FAA registry
+        const merged = primaryData.map(ac => ({
+          ...ac,
+          ...secondaryMap[ac.hex]
+        }))
+
+        setAircraftList(merged);
+
       } catch (error) {
-        console.error('Failed to fetch aircraft data:', error)
+        console.error('Failed to fetch aircraft data:', error);
       }
-    }
+   }
 
-    fetchAircraft(); // initial fetch
-    const intervalId = setInterval(fetchAircraft, 5000);
+  fetchAircraft(); // initial fetch
+  const intervalId = setInterval(fetchAircraft, 10000);
 
-    return () => clearInterval(intervalId); // clean up on unmount
+  return () => clearInterval(intervalId); // cleanup on unmount
   }, []);
 
-  const sortedAircraft = [...aircraftList].sort((a, b) => {
-    const col = sortDescriptor.column
-    let valA = a[col]
-    let valB = b[col]
+  const filteredAircraft = useMemo(() => {
+    if (filterValue === 'All') return aircraftList;
+    return aircraftList.filter(ac => ac.registrant_type === filterValue);
+  }, [aircraftList, filterValue]);
 
-    if (valA == null) valA = ''
-    if (valB == null) valB = ''
+  const sortedAircraft = useMemo(() => {
+    return [...filteredAircraft].sort((a, b) => {
+      const col = sortDescriptor?.column;
+      if (!col) return 0;
 
-    // For strings, lowercase comparison
-    if (typeof valA === 'string') valA = valA.toLowerCase()
-    if (typeof valB === 'string') valB = valB.toLowerCase()
+      let valA = a[col];
+      let valB = b[col];
 
-    if (valA < valB) return sortDescriptor.direction === 'ascending' ? -1 : 1
-    if (valA > valB) return sortDescriptor.direction === 'ascending' ? 1 : -1
-    return 0
-  })
+      if (valA == null) valA = '';
+      if (valB == null) valB = '';
+
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+
+      if (valA < valB) return sortDescriptor.direction === 'ascending' ? -1 : 1;
+      if (valA > valB) return sortDescriptor.direction === 'ascending' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredAircraft, sortDescriptor]);
+
+  const registrantTypes = [
+    'Individual',
+    'Partnership',
+    'Corporation',
+    'Co-Owner',
+    'Government',
+    'LLC',
+    'Non-Citizen Corporation',
+    'Non-Profit Organization'
+  ];
 
   const [tileBaseUrl, setTileBaseUrl] = useState(null);
 
@@ -156,7 +201,7 @@ function App() {
         <Flex direction="row" flexGrow={1}>
           {/* Sidebar */}
           {sidebarOpen && (
-            <View width="40%" backgroundColor="gray-100" padding="size-200">
+            <View width="50%" backgroundColor="gray-100" padding="size-200">
               <Flex direction="column" gap="size-200">
 		<Flex direction="row" gap="size-200">
                   <ActionButton onPress={() => setSidebarOpen(false)} aria-label="Hide Panel">
@@ -190,6 +235,15 @@ function App() {
                     <Filter/><Text>Filter</Text>
                   </ActionButton>
 		  */}
+		  <Picker
+                    selectedKey={filterValue}
+                    onSelectionChange={setFilterValue}
+                  >
+		    {registrantTypes.map(type => (
+                      <Item key={type}>{type}</Item>
+                    ))}
+                  </Picker>
+
 
 		  {selectedAircraftData && (<DialogTrigger type="tray">
                     <ActionButton aria-label="Info">
@@ -247,7 +301,9 @@ function App() {
                     <Column key="hex">
                       ICAO24
                     </Column>
-		  {/* <Column key="lat" allowsSorting> Lat/Lon </Column> */ }
+		    <Column key="registrant_type" allowsSorting>
+		      Type
+		    </Column>
                     <Column key="speed" allowsSorting>
                       Speed
                     </Column>
@@ -260,7 +316,7 @@ function App() {
                       <Row key={ac.hex}>
                         <Cell>{ac.flight || 'NA'}</Cell>
                         <Cell>{ac.hex.toUpperCase()}</Cell>
-			    {/* <Cell>{ac.lat.toFixed(3)},{ac.lon.toFixed(3)}</Cell> */}
+		        <Cell>{ac.registrant_type}</Cell>
                         <Cell>{ac.speed}</Cell>
                         <Cell>{ac.altitude.toLocaleString()}</Cell>
                       </Row>
