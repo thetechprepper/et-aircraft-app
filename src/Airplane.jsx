@@ -1,8 +1,10 @@
 import React from 'react';
 
-export default function Airplane({ heading = 0, flight, altitude, speed, track, isSelected = false }) {
+export default function Airplane({ heading = 0, flight, altitude, speed, track, isSelected = false, onSelect = () => {} }) {
   return (
     <div
+      onClick={onSelect}
+      onTouchStart={onSelect}
       style={{
         display: 'flex',
         alignItems: 'center',

@@ -389,14 +389,21 @@ function App() {
 
               {aircraftList.map((ac) => (
                 <Marker key={ac.hex} anchor={[ac.lat, ac.lon]}>
-                  <Airplane
-                    heading={ac.track}
-                    flight={ac.flight || ac.hex.toUpperCase()}
-                    altitude={ac.altitude}
-                    speed={ac.speed}
-                    track={ac.track}
-                    isSelected={selectedHex === ac.hex}
-                  />
+		  <div style={{ pointerEvents: 'auto' }}>
+                    <Airplane
+                      heading={ac.track}
+                      flight={ac.flight || ac.hex.toUpperCase()}
+                      altitude={ac.altitude}
+                      speed={ac.speed}
+                      track={ac.track}
+                      isSelected={selectedHex === ac.hex}
+	              onSelect={() => {
+                        setSelectedHex(ac.hex);
+                        handleAircraftClick(ac.hex);
+                        setCenter([ac.lat, ac.lon]);
+                      }}
+                    />
+		  </div>
                 </Marker>
               ))}
 
