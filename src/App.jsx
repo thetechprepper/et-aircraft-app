@@ -387,7 +387,7 @@ function App() {
 	        <div className="my-position-marker" />
 	      </Marker>
 
-              {aircraftList.map((ac) => (
+              {filteredAircraft.map((ac) => (
                 <Marker key={ac.hex} anchor={[ac.lat, ac.lon]}>
 		  <div style={{ pointerEvents: 'auto' }}>
                     <Airplane
