@@ -29,6 +29,7 @@ import InfoOutline from '@spectrum-icons/workflow/InfoOutline';
 import Minimize from '@spectrum-icons/workflow/Minimize';
 import ShowMenu from '@spectrum-icons/workflow/ShowMenu';
 import { Map, Marker, ZoomControl } from 'pigeon-maps';
+import { isValidLatLon } from './utils';
 import Airplane from './Airplane.jsx';
 import './App.css';
 
@@ -57,20 +58,16 @@ function App() {
     direction: 'ascending',
   });
 
-  //const mapTiles = {
-  //  osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-  //  opentopo: 'https://tile.opentopomap.org/{z}/{x}/{y}.png'
-  //}
-
   useEffect(() => {
     const fetchDefaultGrid = async () => {
       try {
         const response = await fetch(`${API_HOST}/api/geo/position`);
         if (!response.ok) throw new Error('Failed to fetch default location from et-api');
         const data = await response.json();
-        if (data.lat && data.lon) {
-          setMyPosition([data.lat, data.lon]);
-          setCenter([data.lat, data.lon]);
+        if (isValidLatLon(data)) {
+	  const { lat, lon } = data.position;
+          setMyPosition([lat, lon]);
+          setCenter([lat, lon]);
         }
       } catch (err) {
         console.warn('Could not load default location from GPS or user config:', err);
@@ -222,9 +219,10 @@ function App() {
 
                         const data = await response.json();
 
-                        if (data.lat && data.lon) {
-                          setMyPosition([data.lat, data.lon]);
-                          setCenter([data.lat, data.lon]);
+                        if (isValidLatLon(data)) {
+	                  const { lat, lon } = data.position;
+                          setMyPosition([lat, lon]);
+                          setCenter([lat, lon]);
                         }
                       } catch (err) {
                         console.warn('Could not fetch current position:', err);
