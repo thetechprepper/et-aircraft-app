@@ -23,21 +23,18 @@ import {
   Row,
   Cell,
 } from '@adobe/react-spectrum';
-import Crosshairs from '@spectrum-icons/workflow/Crosshairs';
 import Filter from '@spectrum-icons/workflow/Filter';
 import Minimize from '@spectrum-icons/workflow/Minimize';
 import ShowMenu from '@spectrum-icons/workflow/ShowMenu';
 import { Map, Marker, ZoomControl } from 'pigeon-maps';
 import { isValidLatLon } from './utils';
+import { ADSB_SERVICE, AIRCRAFT_SERVICE, GEO_SERVICE, MAP_SERVICE } from './config';
 import Airplane from './Airplane.jsx';
 import AircraftInfoDialog from './AircraftInfoDialog.jsx';
+import MyPosition from './MyPosition.jsx';
 import './App.css';
 
 function App() {
-
-  const API_HOST = import.meta.env.VITE_API_HOST || 'http://localhost:1981';
-  const DATA_HOST = import.meta.env.VITE_DATA_HOST || 'http://localhost:1090';
-  const MAP_HOST = import.meta.env.VITE_MAP_HOST || 'http://localhost:8000';
 
   const [myPosition, setMyPosition] = useState([33.0, -112.0]);
   const [center, setCenter] = useState([33.0, -112.0]);
@@ -61,7 +58,7 @@ function App() {
   useEffect(() => {
     const fetchDefaultGrid = async () => {
       try {
-        const response = await fetch(`${API_HOST}/api/geo/position`);
+        const response = await fetch(GEO_SERVICE);
         if (!response.ok) throw new Error('Failed to fetch default location from et-api');
         const data = await response.json();
         if (isValidLatLon(data)) {
@@ -78,7 +75,7 @@ function App() {
   }, []);
 
   const handleAircraftClick = async (icao24) => {
-    const response = await fetch(`${API_HOST}/api/aircraft?icao24=${icao24}`);
+    const response = await fetch(`${AIRCRAFT_SERVICE}?icao24=${icao24}`);
     const data = await response.json();
     setSelectedAircraftData(data[0] || null);
   };
@@ -88,14 +85,14 @@ function App() {
     const fetchAircraft = async () => {
       try {
         // Step 1: Fetch ADS-B data from dump1090 endpoint
-        const response = await fetch(`${DATA_HOST}/data.json`);
+        const response = await fetch(ADSB_SERVICE);
         const primaryData = await response.json();
 
         // Step 2: Extract the hex codes
         const hexCodes = primaryData.map(ac => ac.hex).join(',');
 
         // Step 3: Fetch additional aircraft data from the offline FAA endpoint 
-        const secondaryResponse = await fetch(`${API_HOST}/api/aircraft?icao24=${hexCodes}`);
+        const secondaryResponse = await fetch(`${AIRCRAFT_SERVICE}?icao24=${hexCodes}`);
         const secondaryData = await secondaryResponse.json();
 
         // Step 4: Index FAA data by the hex code (ICAO24) for quick lookup
@@ -167,7 +164,7 @@ function App() {
   useEffect(() => {
     async function fetchMapServices() {
       try {
-        const response = await fetch(`${MAP_HOST}/services`);
+        const response = await fetch(MAP_SERVICE);
         const services = await response.json();
         if (services.length > 0) {
           setTileBaseUrl(services[0].url);
@@ -209,28 +206,11 @@ function App() {
                     <Minimize/><Text>Hide</Text>
                   </ActionButton>
 
-		  <ActionButton
-                    aria-label="Recenter"
-                    onPress={async () => {
-                      try {
-                        const response = await fetch(`${API_HOST}/api/geo/position`);
-
-                        if (!response.ok) throw new Error('Failed to fetch position');
-
-                        const data = await response.json();
-
-                        if (isValidLatLon(data)) {
-	                  const { lat, lon } = data.position;
-                          setMyPosition([lat, lon]);
-                          setCenter([lat, lon]);
-                        }
-                      } catch (err) {
-                        console.warn('Could not fetch current position:', err);
-                      }
-                    }}
-                  >
-                    <Crosshairs/><Text>My Position</Text>
-                  </ActionButton>
+		  <MyPosition
+                    setMyPosition={setMyPosition}
+                    setCenter={setCenter}
+                    showText={true}
+                  />
 
 		  <DialogTrigger type="tray">
                     <ActionButton aria-label="Filter">
@@ -330,6 +310,12 @@ function App() {
                 <ActionButton onPress={() => setSidebarOpen(true)} aria-label="Show Panel">
                   <ShowMenu />
                 </ActionButton>
+
+		<MyPosition
+                  setMyPosition={setMyPosition}
+                  setCenter={setCenter}
+                  showText={false}
+                />
 
 	        <AircraftInfoDialog selectedAircraftData={selectedAircraftData} showText={false} />
               </Flex>
