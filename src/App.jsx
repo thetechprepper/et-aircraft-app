@@ -25,12 +25,12 @@ import {
 } from '@adobe/react-spectrum';
 import Crosshairs from '@spectrum-icons/workflow/Crosshairs';
 import Filter from '@spectrum-icons/workflow/Filter';
-import InfoOutline from '@spectrum-icons/workflow/InfoOutline';
 import Minimize from '@spectrum-icons/workflow/Minimize';
 import ShowMenu from '@spectrum-icons/workflow/ShowMenu';
 import { Map, Marker, ZoomControl } from 'pigeon-maps';
 import { isValidLatLon } from './utils';
 import Airplane from './Airplane.jsx';
+import AircraftInfoDialog from './AircraftInfoDialog.jsx';
 import './App.css';
 
 function App() {
@@ -44,7 +44,7 @@ function App() {
   const [zoom, setZoom] = useState(10);
 
   const [useFallback, setUseFallback] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [aircraftList, setAircraftList] = useState([]);
   const [selectedHex, setSelectedHex] = useState(null);
   const [selectedAircraftData, setSelectedAircraftData] = useState(null);
@@ -202,7 +202,7 @@ function App() {
         <Flex direction="row" flexGrow={1}>
           {/* Sidebar */}
           {sidebarOpen && (
-            <View width="50%" backgroundColor="gray-100" padding="size-200">
+            <View width="65%" backgroundColor="gray-100" padding="size-200">
               <Flex direction="column" gap="size-200">
 		<Flex direction="row" gap="size-200">
                   <ActionButton onPress={() => setSidebarOpen(false)} aria-label="Hide Panel">
@@ -270,37 +270,7 @@ function App() {
                     )}
                   </DialogTrigger>
 
-		  {selectedAircraftData && (<DialogTrigger type="tray">
-                    <ActionButton aria-label="Info">
-                      <InfoOutline/><Text>Info</Text>
-                    </ActionButton>
-                    <Dialog>
-                      <Heading>{selectedAircraftData?.make || 'Unknown Make'} {selectedAircraftData?.model || 'Unknown Model'}</Heading>
-                      <Divider />
-                      <Content>
-                        <Flex direction="column" gap="size-100">
-                          {[
-                            ['Type', selectedAircraftData?.registrant_type || 'Unknown'],
-                            ['Owner', selectedAircraftData?.owner_name || 'Unknown'],
-                            ['Tail #', selectedAircraftData?.tail_number || 'Unknown'],
-                            ['Year', selectedAircraftData?.year|| 'Unknown'],
-                            ['City', selectedAircraftData?.city || 'Unknown'],
-                            ['State', selectedAircraftData?.state || 'Unknown']
-                          ].map(([label, value]) => (
-                            <Flex key={label} direction="row" gap="size-100" alignItems="start">
-                              <Text width="size-800" UNSAFE_style={{ fontWeight: 'bold' }}>
-                                {label}:
-                              </Text>
-                              <Text flex="1">
-                                {value}
-                              </Text>
-                            </Flex>
-                          ))}
-                        </Flex>
-                      </Content>
-                    </Dialog>
-                  </DialogTrigger>
-	          )}
+		  <AircraftInfoDialog selectedAircraftData={selectedAircraftData} showText={true} />
 		</Flex>
 
                 <TableView
@@ -360,7 +330,10 @@ function App() {
                 <ActionButton onPress={() => setSidebarOpen(true)} aria-label="Show Panel">
                   <ShowMenu />
                 </ActionButton>
+
+	        <AircraftInfoDialog selectedAircraftData={selectedAircraftData} showText={false} />
               </Flex>
+
             </View>
           )}
 
