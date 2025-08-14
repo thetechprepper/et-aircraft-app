@@ -1,18 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActionButton,
-  Button,
   ButtonGroup,
   defaultTheme,
   Content,
-  Dialog,
-  DialogTrigger,
-  Divider,
   Flex,
-  Heading,
   Item,
-  ListBox,
-  Picker,
   Provider,
   Text,
   View,
@@ -23,7 +16,6 @@ import {
   Row,
   Cell,
 } from '@adobe/react-spectrum';
-import Filter from '@spectrum-icons/workflow/Filter';
 import Minimize from '@spectrum-icons/workflow/Minimize';
 import ShowMenu from '@spectrum-icons/workflow/ShowMenu';
 import { Map, Marker, ZoomControl } from 'pigeon-maps';
@@ -31,6 +23,7 @@ import { isValidLatLon } from './utils';
 import { ADSB_SERVICE, AIRCRAFT_SERVICE, GEO_SERVICE, MAP_SERVICE } from './config';
 import Airplane from './Airplane.jsx';
 import AircraftInfoDialog from './AircraftInfoDialog.jsx';
+import AircraftFilter from './AircraftFilter.jsx';
 import MyPosition from './MyPosition.jsx';
 import './App.css';
 
@@ -212,43 +205,14 @@ function App() {
                     showText={true}
                   />
 
-		  <DialogTrigger type="tray">
-                    <ActionButton aria-label="Filter">
-                      <Filter/><Text>Filter</Text>
-                    </ActionButton>
-
-                    {(close) => (
-                      <Dialog>
-                        <Heading>Filter by Registrant Type</Heading>
-                        <Divider />
-                        <Content>
-                          <ListBox
-                            selectionMode="multiple"
-                            selectedKeys={tempSelection}
-                            onSelectionChange={setTempSelection}
-                          >
-                            {registrantTypes.map(type => (
-                              <Item key={type}>{type}</Item>
-                            ))}
-                          </ListBox>
-                        </Content>
-                        <ButtonGroup>
-                          <Button variant="secondary" onPress={() => {
-                            setTempSelection(new Set(selectedTypes)); // Reset to current selection
-                            close();
-                          }}>
-                            Cancel
-                          </Button>
-                          <Button variant="accent" onPress={() => {
-                            setSelectedTypes(new Set(tempSelection));
-                            close();
-                          }}>
-                            Apply
-                          </Button>
-                        </ButtonGroup>
-                      </Dialog>
-                    )}
-                  </DialogTrigger>
+                  <AircraftFilter
+                    registrantTypes={registrantTypes}
+                    selectedTypes={selectedTypes}
+                    setSelectedTypes={setSelectedTypes}
+                    tempSelection={tempSelection}
+                    setTempSelection={setTempSelection}
+                    showText={true}
+                  />
 
 		  <AircraftInfoDialog selectedAircraftData={selectedAircraftData} showText={true} />
 		</Flex>
@@ -316,6 +280,15 @@ function App() {
                   setCenter={setCenter}
                   showText={false}
                 />
+
+                <AircraftFilter
+                  registrantTypes={registrantTypes}
+                  selectedTypes={selectedTypes}
+                  setSelectedTypes={setSelectedTypes}
+                  tempSelection={tempSelection}
+                  setTempSelection={setTempSelection}
+                  showText={false}
+                  />
 
 	        <AircraftInfoDialog selectedAircraftData={selectedAircraftData} showText={false} />
               </Flex>
