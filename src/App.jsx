@@ -80,7 +80,8 @@ function App() {
         // Step 1: Fetch ADS-B data from dump1090 endpoint
         const response = await fetch(ADSB_SERVICE);
         const primaryData = await response.json();
-
+	if (!primaryData?.length) return;
+      
         // Step 2: Extract the hex codes
         const hexCodes = primaryData.map(ac => ac.hex).join(',');
 
