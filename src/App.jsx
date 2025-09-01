@@ -314,9 +314,7 @@ function App() {
             >
 
               <ZoomControl />
-              <Marker anchor={myPosition}>
-	        <div className="my-position-marker" />
-	      </Marker>
+              <Marker anchor={myPosition} />
 
               {filteredAircraft.map((ac) => (
                 <Marker key={ac.hex} anchor={[ac.lat, ac.lon]}>
