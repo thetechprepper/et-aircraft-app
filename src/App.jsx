@@ -28,10 +28,12 @@ import MyPosition from './MyPosition.jsx';
 import './App.css';
 
 function App() {
+  const DEFAULT_ZOOM_REGION = 10; // Default zoom level for country-specific maps (i.e. US and CA).
+  const DEFAULT_ZOOM_WORLD = 6;   // Default zoom level for world map.
 
   const [myPosition, setMyPosition] = useState([33.0, -112.0]);
   const [center, setCenter] = useState([33.0, -112.0]);
-  const [zoom, setZoom] = useState(10);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM_WORLD);
 
   const [useFallback, setUseFallback] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -47,6 +49,10 @@ function App() {
     column: 'flight',
     direction: 'ascending',
   });
+
+  // Handle zoom level based on availability of offline regional vs world map
+  const getDefaultZoom = () => 
+    (tileBaseUrl?.includes('osm-world')) ? DEFAULT_ZOOM_WORLD : DEFAULT_ZOOM_REGION;
 
   useEffect(() => {
     const fetchDefaultGrid = async () => {
@@ -161,10 +167,15 @@ function App() {
         const response = await fetch(MAP_SERVICE);
         const services = await response.json();
         if (services.length > 0) {
-          setTileBaseUrl(services[0].url);
+          const url = services[0].url;
+          setTileBaseUrl(url);
+          setZoom(
+            url?.includes('osm-world') ? DEFAULT_ZOOM_WORLD : DEFAULT_ZOOM_REGION
+          );		
         } else {
           console.warn('No map tile services found.');
           setUseFallback(true);
+          setZoom(DEFAULT_ZOOM_REGION);
         }
       } catch (err) {
         console.error('Failed to fetch map services:', err);
