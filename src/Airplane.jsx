@@ -9,7 +9,7 @@ export default function Airplane({ heading = 0, flight, altitude, speed, track, 
         display: 'flex',
         alignItems: 'center',
         gap: '4px',
-        transform: `rotate(${heading}deg)`,
+        transform: `rotate(${heading - 45}deg)`,
         transformOrigin: 'center',
         fontSize: '1.4rem',
         cursor: 'pointer',
@@ -38,7 +38,7 @@ Track: ${track}°`}
       <span role="img" aria-label="airplane">✈️</span>
       <span
         style={{
-          transform: `rotate(${-heading}deg)`,
+          transform: `rotate(${-heading - 45}deg)`,
           backgroundColor: 'rgba(0, 0, 0, 0.6)',
           color: 'white',
           padding: '2px 6px',
