@@ -179,7 +179,7 @@ function App() {
         }
       } catch (err) {
         console.error('Failed to fetch map services:', err);
-        setUseFallback(true);s
+        setUseFallback(true);
       }
     }
 
